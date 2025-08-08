@@ -1,0 +1,15 @@
+gunicorn
+Django>=4.2
+psycopg2-binary
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+celery
+redis
+Pillow
+drf-yasg
+django-ratelimit
+python-dotenv
+sentry-sdk
+whitenoise
+dj-database-url
