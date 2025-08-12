@@ -10,10 +10,10 @@ def custom_exception_handler(exc, context):
             'errors': response.data
         }
     else:
-        # Unhandled exceptions
+        # Unhandled exceptions: include real error for debugging
         response = Response({
             'success': False,
             'status_code': 500,
-            'errors': 'Internal server error.'
+            'errors': str(exc)  # Show real error for debugging
         }, status=500)
     return response
