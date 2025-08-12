@@ -1,3 +1,4 @@
+django-redis
 gunicorn
 Django>=4.2
 psycopg2-binary
