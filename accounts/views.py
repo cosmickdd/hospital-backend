@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ProfileUpdateSerializer, PasswordChangeSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermission
+from rest_framework.views import APIView
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -56,3 +57,9 @@ class IsDoctor(BasePermission):
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_admin
+
+class SessionCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({'detail': 'Session is valid.'}, status=200)
