@@ -142,7 +142,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'EXCEPTION_HANDLER': 'core.exception_handler.custom_exception_handler',
+    # 'EXCEPTION_HANDLER': 'core.exception_handler.custom_exception_handler',  # Disabled for debugging
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',
         'rest_framework.throttling.AnonRateThrottle',
