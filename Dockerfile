@@ -1,4 +1,4 @@
-+# Dockerfile for hospital-backend
+# Dockerfile for hospital-backend
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
