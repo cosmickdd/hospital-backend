@@ -1,4 +1,3 @@
-
 # config/settings.py
 """
 Django settings for hospital-backend
@@ -14,6 +13,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from dotenv import load_dotenv
 from pathlib import Path
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -110,6 +110,18 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# --- SimpleJWT Settings ---
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_USER_CLASS': 'accounts.User',
+}
+# --- End SimpleJWT Settings ---
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

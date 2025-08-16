@@ -1,4 +1,4 @@
-# Dockerfile for hospital-backend
++# Dockerfile for hospital-backend
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -14,5 +14,5 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
 # No collectstatic here — we’ll do it at runtime
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
 
