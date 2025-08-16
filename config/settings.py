@@ -14,6 +14,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
+import logging
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,15 +37,26 @@ DATABASES = {
 }
 
 # Redis cache
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+try:
+    import redis
+    r = redis.from_url(os.environ.get('REDIS_URL', 'redis://localhost:6379/0'))
+    r.ping()
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
         }
     }
-}
+except Exception as e:
+    logging.warning(f"Redis unavailable, using DummyCache: {e}")
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        }
+    }
 
 # Load environment variables from .env file if present
 load_dotenv(os.path.join(BASE_DIR, '.env'))
