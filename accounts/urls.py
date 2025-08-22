@@ -1,7 +1,7 @@
 # accounts/urls.py
 
 from django.urls import path
-from .views import RegisterView, UserDetailView, ProfileUpdateView, PasswordChangeView, LogoutView, SessionCheckView
+from .views import RegisterView, UserDetailView, ProfileUpdateView, PasswordChangeView, LogoutView, SessionCheckView, ActivateAccountView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -13,4 +13,5 @@ urlpatterns = [
     path('me/update/', ProfileUpdateView.as_view(), name='profile_update'),
     path('me/change-password/', PasswordChangeView.as_view(), name='password_change'),
     path('session/', SessionCheckView.as_view(), name='session_check'),
+    path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),
 ]

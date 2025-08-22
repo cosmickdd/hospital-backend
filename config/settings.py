@@ -1,3 +1,16 @@
+import os
+# Google reCAPTCHA secret key (set this in your .env for production)
+RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
+# URL of your frontend for activation redirect
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+# Email backend (Gmail SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ut054370@gmail.com'
+EMAIL_HOST_PASSWORD = 'wiqe nuda ijwi usdj'
+DEFAULT_FROM_EMAIL = 'ut054370@gmail.com'
 # config/settings.py
 """
 Django settings for hospital-backend

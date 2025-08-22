@@ -1,3 +1,26 @@
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.template.loader import render_to_string
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.conf import settings
+from django.shortcuts import redirect
+class ActivateAccountView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            return redirect(settings.FRONTEND_URL + '/login?verified=1')
+        else:
+            return Response({'error': 'Activation link is invalid!'}, status=400)
 # accounts/views.py
 
 from rest_framework import generics, permissions
@@ -15,6 +38,44 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = (permissions.AllowAny,)
+
+    def perform_create(self, serializer):
+        # CAPTCHA verification
+        captcha_token = self.request.data.get('captcha_token')
+        import requests
+        captcha_secret = getattr(settings, 'RECAPTCHA_SECRET_KEY', None)
+        if not captcha_secret:
+            raise Exception('reCAPTCHA secret key not set in settings.')
+        captcha_response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': captcha_secret,
+                'response': captcha_token
+            }
+        )
+        captcha_result = captcha_response.json()
+        if not captcha_result.get('success'):
+            raise Exception('Invalid CAPTCHA. Please try again.')
+
+        user = serializer.save(is_active=False)  # User inactive until email verified
+        request = self.request
+        current_site = get_current_site(request)
+        mail_subject = 'Activate your hospital account'
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
+        message = render_to_string('accounts/activation_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'activation_link': activation_link,
+        })
+        send_mail(
+            mail_subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
