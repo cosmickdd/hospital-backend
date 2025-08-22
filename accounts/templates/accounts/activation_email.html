@@ -1,9 +1,43 @@
-Hi {{ user.username }},
 
-Thank you for registering at {{ domain }}.
-
-Please click the link below to verify your email and activate your account:
-
-{{ activation_link }}
-
-If you did not register, please ignore this email.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Activate Your Sahib Ayurveda Account</title>
+</head>
+<body style="background: #f6f8fa; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif;">
+	<table width="100%" bgcolor="#f6f8fa" cellpadding="0" cellspacing="0" style="padding: 40px 0;">
+		<tr>
+			<td align="center">
+				<table width="100%" style="max-width: 480px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(44, 197, 160, 0.08); overflow: hidden;">
+					<tr>
+						<td style="background: linear-gradient(90deg, #14b8a6 0%, #059669 100%); padding: 32px 0; text-align: center;">
+							<h1 style="color: #fff; font-size: 2rem; margin: 0; letter-spacing: 1px;">Sahib Ayurveda</h1>
+							<p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 1.1rem;">Welcome to Holistic Healing</p>
+						</td>
+					</tr>
+					<tr>
+						<td style="padding: 32px 32px 24px 32px;">
+							<h2 style="color: #059669; margin-top: 0;">Hi {{ user.username }},</h2>
+							<p style="color: #374151; font-size: 1.1rem;">Thank you for registering at <b>Sahib Ayurveda</b>.<br>
+							Please verify your email address to activate your account and start your journey to better health.</p>
+							<div style="text-align: center; margin: 32px 0;">
+								<a href="{{ activation_link }}" style="display: inline-block; background: linear-gradient(90deg, #14b8a6 0%, #059669 100%); color: #fff; font-weight: bold; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(44, 197, 160, 0.12);">Activate My Account</a>
+							</div>
+							<p style="color: #6b7280; font-size: 0.95rem;">If the button above does not work, copy and paste the following link into your browser:</p>
+							<p style="word-break: break-all; color: #059669; font-size: 0.95rem;">{{ activation_link }}</p>
+							<p style="color: #9ca3af; font-size: 0.9rem; margin-top: 32px;">If you did not register for Sahib Ayurveda, you can safely ignore this email.</p>
+						</td>
+					</tr>
+					<tr>
+						<td style="background: #f0fdfa; text-align: center; padding: 16px; color: #059669; font-size: 0.95rem; border-top: 1px solid #e0f2f1;">
+							&copy; {{ year|default:2025 }} Sahib Ayurveda. All rights reserved.
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
