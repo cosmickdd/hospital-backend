@@ -70,23 +70,28 @@ class RegisterView(generics.CreateAPIView):
 
         user = serializer.save(is_active=False)  # User inactive until email verified
         request = self.request
-        current_site = get_current_site(request)
-        mail_subject = 'Activate your hospital account'
+        # Use BACKEND_DOMAIN for activation link (set in .env or settings)
+        backend_domain = getattr(settings, 'BACKEND_DOMAIN', None) or os.environ.get('BACKEND_DOMAIN')
+        if not backend_domain:
+            backend_domain = 'https://your-backend.onrender.com'  # fallback, update as needed
+        mail_subject = 'Activate your Sahib Ayurveda Account'
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
+        activation_link = f"{backend_domain}/api/accounts/activate/{uid}/{token}/"
         message = render_to_string('accounts/activation_email.html', {
             'user': user,
-            'domain': current_site.domain,
             'activation_link': activation_link,
+            'year': 2025,
         })
-        send_mail(
+        from django.core.mail import EmailMultiAlternatives
+        email = EmailMultiAlternatives(
             mail_subject,
-            message,
+            '',  # plain text fallback (optional)
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
-            fail_silently=False,
         )
+        email.attach_alternative(message, "text/html")
+        email.send(fail_silently=False)
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()

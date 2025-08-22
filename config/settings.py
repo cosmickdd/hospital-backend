@@ -1,3 +1,5 @@
+# Backend domain for activation links (set this in your .env for production)
+BACKEND_DOMAIN = os.environ.get('BACKEND_DOMAIN', 'https://your-backend.onrender.com')
 import os
 # Google reCAPTCHA secret key (set this in your .env for production)
 RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
