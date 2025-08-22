@@ -40,22 +40,22 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def perform_create(self, serializer):
-        # CAPTCHA verification
-        captcha_token = self.request.data.get('captcha_token')
-        import requests
-        captcha_secret = getattr(settings, 'RECAPTCHA_SECRET_KEY', None)
-        if not captcha_secret:
-            raise Exception('reCAPTCHA secret key not set in settings.')
-        captcha_response = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data={
-                'secret': captcha_secret,
-                'response': captcha_token
-            }
-        )
-        captcha_result = captcha_response.json()
-        if not captcha_result.get('success'):
-            raise Exception('Invalid CAPTCHA. Please try again.')
+        # CAPTCHA verification (commented out)
+        # captcha_token = self.request.data.get('captcha_token')
+        # import requests
+        # captcha_secret = getattr(settings, 'RECAPTCHA_SECRET_KEY', None)
+        # if not captcha_secret:
+        #     raise Exception('reCAPTCHA secret key not set in settings.')
+        # captcha_response = requests.post(
+        #     'https://www.google.com/recaptcha/api/siteverify',
+        #     data={
+        #         'secret': captcha_secret,
+        #         'response': captcha_token
+        #     }
+        # )
+        # captcha_result = captcha_response.json()
+        # if not captcha_result.get('success'):
+        #     raise Exception('Invalid CAPTCHA. Please try again.')
 
         user = serializer.save(is_active=False)  # User inactive until email verified
         request = self.request
