@@ -11,6 +11,9 @@ from rest_framework import permissions, generics, status
 from rest_framework.response import Response
 from django.contrib.sites.shortcuts import get_current_site
 from .models import User
+from .email_verification import EmailVerificationToken
+from django.utils import timezone
+from datetime import timedelta
 from .serializers import UserSerializer, RegisterSerializer, ProfileUpdateSerializer, PasswordChangeSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermission
@@ -108,51 +111,51 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def perform_create(self, serializer):
-        # CAPTCHA verification (commented out)
-        # captcha_token = self.request.data.get('captcha_token')
-        # import requests
-        # captcha_secret = getattr(settings, 'RECAPTCHA_SECRET_KEY', None)
-        # if not captcha_secret:
-        #     raise Exception('reCAPTCHA secret key not set in settings.')
-        # captcha_response = requests.post(
-        #     'https://www.google.com/recaptcha/api/siteverify',
-        #     data={
-        #         'secret': captcha_secret,
-        #         'response': captcha_token
-        #     }
-        # )
-        # captcha_result = captcha_response.json()
-        # if not captcha_result.get('success'):
-        #     raise Exception('Invalid CAPTCHA. Please try again.')
-
-        user = serializer.save(is_active=False)  # User inactive until email verified
-        request = self.request
-        # Use BACKEND_DOMAIN for activation link (set in .env or settings)
+        user = serializer.save(is_active=False)
+        # Generate a secure UUID token, valid for 24 hours
+        token_obj = EmailVerificationToken.objects.create(
+            user=user,
+            expires_at=timezone.now() + timedelta(hours=24)
+        )
         backend_domain = getattr(settings, 'BACKEND_DOMAIN', None) or os.environ.get('BACKEND_DOMAIN')
         if not backend_domain:
-            backend_domain = 'https://your-backend.onrender.com'  # fallback, update as needed
-        # Debug logging
-        import logging
-        logging.warning(f"[DEBUG] BACKEND_DOMAIN used for activation: {backend_domain}")
+            backend_domain = 'https://your-backend.onrender.com'
+        verify_link = f"{backend_domain}/api/accounts/verify/?token={token_obj.token}"
         mail_subject = 'Activate your Sahib Ayurveda Account'
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        activation_link = f"{backend_domain}/api/accounts/activate/{uid}/{token}/"
-        logging.warning(f"[DEBUG] Activation link sent: {activation_link}")
         message = render_to_string('accounts/activation_email.html', {
             'user': user,
-            'activation_link': activation_link,
+            'activation_link': verify_link,
             'year': 2025,
         })
         from django.core.mail import EmailMultiAlternatives
         email = EmailMultiAlternatives(
             mail_subject,
-            '',  # plain text fallback (optional)
+            '',
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
         )
         email.attach_alternative(message, "text/html")
         email.send(fail_silently=False)
+
+# Email verification endpoint
+class VerifyEmailTokenView(APIView):
+    permission_classes = (permissions.AllowAny,)
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({'error': 'Token is required.'}, status=400)
+        try:
+            token_obj = EmailVerificationToken.objects.get(token=token, used=False)
+        except EmailVerificationToken.DoesNotExist:
+            return Response({'error': 'Invalid or expired token.'}, status=400)
+        if token_obj.is_expired():
+            return Response({'error': 'Token expired.'}, status=400)
+        user = token_obj.user
+        user.is_active = True
+        user.save()
+        token_obj.used = True
+        token_obj.save()
+        return Response({'detail': 'Account activated.'}, status=200)
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
