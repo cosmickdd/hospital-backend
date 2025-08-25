@@ -57,6 +57,11 @@ class PasswordResetConfirmView(APIView):
             return Response({'error': 'Invalid or expired token.'}, status=400)
         user.set_password(password)
         user.save()
+        # Send password reset confirmation email
+        subject = 'Your Sahib Ayurveda password was reset'
+        message = f"Hello {user.username},\n\nYour password was successfully reset. If you did not perform this action, please contact support immediately."
+        email_msg = EmailMultiAlternatives(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+        email_msg.send(fail_silently=True)
         return Response({'detail': 'Password has been reset.'}, status=200)
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -113,14 +118,23 @@ class RegisterView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save(is_active=False)
         # Generate a secure UUID token, valid for 24 hours
-        token_obj = EmailVerificationToken.objects.create(
-            user=user,
-            expires_at=timezone.now() + timedelta(hours=24)
-        )
+        try:
+            token_obj = EmailVerificationToken.objects.create(
+                user=user,
+                expires_at=timezone.now() + timedelta(hours=24)
+            )
+        except Exception as e:
+            user.delete()
+            raise e
         backend_domain = getattr(settings, 'BACKEND_DOMAIN', None) or os.environ.get('BACKEND_DOMAIN')
         if not backend_domain:
             backend_domain = 'https://your-backend.onrender.com'
+        # Support for 'next' param in registration
+    next_url = self.request.data.get('next') if hasattr(self.request, 'data') else None
         verify_link = f"{backend_domain}/api/accounts/verify/?token={token_obj.token}"
+        if next_url:
+            from urllib.parse import urlencode
+            verify_link += '&' + urlencode({'next': next_url})
         mail_subject = 'Activate your Sahib Ayurveda Account'
         message = render_to_string('accounts/activation_email.html', {
             'user': user,

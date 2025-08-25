@@ -19,6 +19,15 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 class RegisterSerializer(serializers.ModelSerializer):
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with that username already exists.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with that email already exists.")
+        return value
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     class Meta:
         model = User
